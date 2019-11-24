@@ -3,6 +3,11 @@
   <component name="issues">
     <option name="index">
       <map>
+        <entry key="/a.dummy">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/sched/Common.java">
           <value>
             <set />
@@ -29,6 +34,11 @@
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/src/main/java/com/sched/sProcess.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/src/main/resources/Summary-Processes">
           <value>
             <set />
           </value>

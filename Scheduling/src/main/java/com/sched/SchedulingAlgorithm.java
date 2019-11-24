@@ -11,7 +11,7 @@ public class SchedulingAlgorithm {
     private static final String COMPLETED = " completed... (";
     private static final String I_O_BLOCKED = " I/O blocked... (";
 
-    public static Results run(int runtime, Vector processVector, Results result) {
+    public static Results run(int runtime, Vector<sProcess> processVector, Results result) {
         int i = 0;
         int comptime = 0;
         int currentProcess = 0;
@@ -24,10 +24,10 @@ public class SchedulingAlgorithm {
         result.schedulingName = "Fair share";
         try {
             PrintStream out = new PrintStream(new FileOutputStream(resultsFile));
-            sProcess process = (sProcess) processVector.elementAt(currentProcess);
+            sProcess process = processVector.elementAt(currentProcess);
             logState(currentProcess, out, process, REGISTERED);
             while (comptime < runtime) {
-                if (process.cpudone == process.cputime) {
+                if (process.getCpudone() == process.getCputime()) {
                     completed++;
                     logState(currentProcess, out, process, COMPLETED);
                     if (completed == size) {
@@ -37,30 +37,30 @@ public class SchedulingAlgorithm {
                     }
                     for (i = size - 1; i >= 0; i--) {
                         process = (sProcess) processVector.elementAt(i);
-                        if (process.cpudone < process.cputime) {
+                        if (process.getCpudone() < process.getCputime()) {
                             currentProcess = i;
                         }
                     }
                     process = (sProcess) processVector.elementAt(currentProcess);
                     logState(currentProcess, out, process, REGISTERED);
                 }
-                if (process.ioblocking == process.ionext) {
+                if (process.getIoblocking() == process.getIonext()) {
                     logState(currentProcess, out, process, I_O_BLOCKED);
-                    process.numblocked++;
-                    process.ionext = 0;
+                    process.setNumblocked(process.getNumblocked() + 1);
+                    process.setIonext(0);
                     previousProcess = currentProcess;
                     for (i = size - 1; i >= 0; i--) {
                         process = (sProcess) processVector.elementAt(i);
-                        if (process.cpudone < process.cputime && previousProcess != i) {
+                        if (process.getCpudone() < process.getCputime() && previousProcess != i) {
                             currentProcess = i;
                         }
                     }
                     process = (sProcess) processVector.elementAt(currentProcess);
                     logState(currentProcess, out, process, REGISTERED);
                 }
-                process.cpudone++;
-                if (process.ioblocking > 0) {
-                    process.ionext++;
+                process.setCpudone(process.getCpudone() + 1);
+                if (process.getIoblocking() > 0) {
+                    process.setIonext(process.getIonext() + 1);
                 }
                 comptime++;
             }
@@ -72,6 +72,6 @@ public class SchedulingAlgorithm {
 
     private static void logState(int currentProcess, PrintStream out, sProcess process, String state) {
         out.println("Process: " + currentProcess + state +
-                process.cputime + " " + process.ioblocking + " " + process.cpudone + " " + process.cpudone + ")");
+                process.getCputime() + " " + process.getIoblocking() + " " + process.getCpudone() + " " + process.getCpudone() + ")");
     }
 }
