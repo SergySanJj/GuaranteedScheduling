@@ -1,50 +1,70 @@
 package com.sched;
 
+import java.text.DecimalFormat;
 import java.util.Objects;
 
 public class ProcessSimulation implements Comparable<ProcessSimulation> {
     private int PID;
     private int cpuTime;
-    private int ioBlocking;
+    private int blockAfter;
+    private int timeInBlock;
     private int cpuDone;
-    private int ioNext;
+    private int lastTimeBlockedGlobal;
+    private int lastTimeBlockedLocal;
     private int numBlocked;
     private double ratio;
 
-    public ProcessSimulation(int cpuTime, int ioBlocking, int cpuDone, int ioNext, int numBlocked) {
+    public ProcessSimulation(int cpuTime, int blockAfter, int cpuDone, int lastTimeBlockedGlobal, int numBlocked, int timeInBlock) {
         this.setCpuTime(cpuTime);
-        this.setIoBlocking(ioBlocking);
+        this.setBlockAfter(blockAfter);
         this.setCpuDone(cpuDone);
-        this.setIoNext(ioNext);
+        this.setLastTimeBlockedGlobal(lastTimeBlockedGlobal);
         this.setNumBlocked(numBlocked);
+        this.setTimeInBlock(timeInBlock);
+        this.lastTimeBlockedLocal = 0;
         this.PID = 0;
         ratio = 0.0;
     }
 
+    public boolean isAvailable(int globalTime) {
+        return lastTimeBlockedGlobal + blockAfter <= globalTime;
+    }
+
+    public boolean isDone() {
+        return cpuDone >= cpuTime;
+    }
+
+    private static String format(String str) {
+        int len = 16;
+        StringBuilder strBuilder = new StringBuilder(str);
+        while (strBuilder.length() < len)
+            strBuilder.append(" ");
+        str = strBuilder.toString();
+        return str;
+    }
+
+    private static String format(Integer val) {
+        return format(Integer.toString(val));
+    }
+
+    private static DecimalFormat df3 = new DecimalFormat("#.###");
 
     @Override
     public String toString() {
         StringBuilder res = new StringBuilder();
-        res.append(getPID()).append("  ");
-        res.append(getCpuTime());
-        if (getCpuTime() < 100) {
-            res.append(" (ms)\t\t");
-        } else {
-            res.append(" (ms)\t");
-        }
-        res.append(getIoBlocking());
-        if (getIoBlocking() < 100) {
-            res.append(" (ms)\t\t");
-        } else {
-            res.append(" (ms)\t");
-        }
-        res.append(getCpuDone());
-        if (getCpuDone() < 100) {
-            res.append(" (ms)\t\t");
-        } else {
-            res.append(" (ms)\t");
-        }
-        res.append(getNumBlocked()).append(" times");
+        res.append(format(getPID()));
+        res.append(format(getCpuTime()));
+        res.append(format(getBlockAfter()));
+        res.append(format(getTimeInBlock()));
+        res.append(format(getCpuDone()));
+        res.append(format(getNumBlocked() + " times "));
+        String state;
+        if (isDone())
+            state = "Done";
+        else
+            state = "Not done";
+        res.append(format(state));
+        res.append(format(df3.format(ratio)));
 
         return res.toString();
     }
@@ -57,12 +77,12 @@ public class ProcessSimulation implements Comparable<ProcessSimulation> {
         this.cpuTime = cpuTime;
     }
 
-    public int getIoBlocking() {
-        return ioBlocking;
+    public int getBlockAfter() {
+        return blockAfter;
     }
 
-    public void setIoBlocking(int ioBlocking) {
-        this.ioBlocking = ioBlocking;
+    public void setBlockAfter(int blockAfter) {
+        this.blockAfter = blockAfter;
     }
 
     public int getCpuDone() {
@@ -73,12 +93,12 @@ public class ProcessSimulation implements Comparable<ProcessSimulation> {
         this.cpuDone = cpuDone;
     }
 
-    public int getIoNext() {
-        return ioNext;
+    public int getLastTimeBlockedGlobal() {
+        return lastTimeBlockedGlobal;
     }
 
-    public void setIoNext(int ioNext) {
-        this.ioNext = ioNext;
+    public void setLastTimeBlockedGlobal(int lastTimeBlockedGlobal) {
+        this.lastTimeBlockedGlobal = lastTimeBlockedGlobal;
     }
 
     public int getNumBlocked() {
@@ -100,12 +120,14 @@ public class ProcessSimulation implements Comparable<ProcessSimulation> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(cpuTime, ioBlocking, cpuDone, ioNext, numBlocked, ratio);
+        return Objects.hash(cpuTime, blockAfter, cpuDone, lastTimeBlockedGlobal, numBlocked, ratio);
     }
 
     @Override
     public int compareTo(ProcessSimulation other) {
-        return Double.compare(ratio, other.ratio);
+        if (ratio < other.ratio)
+            return -1;
+        else return 1;
     }
 
     public int getPID() {
@@ -114,5 +136,29 @@ public class ProcessSimulation implements Comparable<ProcessSimulation> {
 
     public void setPID(int PID) {
         this.PID = PID;
+    }
+
+    public int getTimeInBlock() {
+        return timeInBlock;
+    }
+
+    public void setTimeInBlock(int timeInBlock) {
+        this.timeInBlock = timeInBlock;
+    }
+
+    public double getRatio() {
+        return ratio;
+    }
+
+    public void setRatio(double ratio) {
+        this.ratio = ratio;
+    }
+
+    public int getLastTimeBlockedLocal() {
+        return lastTimeBlockedLocal;
+    }
+
+    public void setLastTimeBlockedLocal(int lastTimeBlockedLocal) {
+        this.lastTimeBlockedLocal = lastTimeBlockedLocal;
     }
 }

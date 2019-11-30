@@ -1,11 +1,11 @@
-Scheduling Type: Group share
-Scheduling Name: Fair share
-Simulation Run Time: 637
+Scheduling Type: Interactive
+Scheduling Name: Guaranteed
+Simulation Run Time: 768
 Mean: 146
 Standard Deviation: 11
 Process #	CPU Time	IO Blocking	CPU Completed	CPU Blocked
-0		141 (ms)	123 (ms)	141 (ms)	1 times
-1		124 (ms)	13 (ms)		124 (ms)	9 times
-2		124 (ms)	17 (ms)		124 (ms)	7 times
-3		124 (ms)	19 (ms)		124 (ms)	6 times
-4		124 (ms)	13 (ms)		124 (ms)	9 times
+0		132 (ms)	123 (ms)	132 (ms)	1 times
+1		159 (ms)	13 (ms)		159 (ms)	12 times
+2		159 (ms)	17 (ms)		159 (ms)	9 times
+3		159 (ms)	19 (ms)		159 (ms)	8 times
+4		159 (ms)	13 (ms)		159 (ms)	12 times

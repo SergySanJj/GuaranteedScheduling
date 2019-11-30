@@ -2,87 +2,125 @@ package com.sched;// Run() is called from Scheduling.main() and is where
 // the scheduling algorithm written by the user resides.
 // User modification should occur within the Run() function.
 
+import java.text.DecimalFormat;
 import java.util.Vector;
 import java.io.*;
 
 public class GuaranteedSchedulingAlgorithm implements SchedulingAlgorithm {
+    private AutoSortedList<ProcessSimulation> processes;
+    private PrintStream out;
+    private int comptime = 0;
+    private int completedCount = 0;
+    private int runtime;
 
-    public GuaranteedSchedulingAlgorithm() {
+    public GuaranteedSchedulingAlgorithm() { // Further initialisation via run method
     }
 
     @Override
     public Results run(int runtime, Vector<ProcessSimulation> processVector) {
-        AutoSortedList<ProcessSimulation> processes = new AutoSortedList<>(processVector);
+        processes = new AutoSortedList<>(processVector);
         Results result = new Results("Interactive", "Guaranteed", 0);
+        this.runtime = runtime;
 
-        int comptime = 0;
-        int currentProcess = 0;
-        int previousProcess = 0;
-        int size = processVector.size();
-        int completed = 0;
         String resultsFile = "Summary-Processes";
 
         try {
             File procFile = new File("res/" + resultsFile);
             procFile.createNewFile();
             FileOutputStream procOut = new FileOutputStream(procFile, false);
-            PrintStream out = new PrintStream(procOut);
+            out = new PrintStream(procOut);
 
-            ProcessSimulation process = processVector.elementAt(currentProcess);
-            logState(out, process, REGISTERED);
-            while (comptime < runtime) {
-                if (process.getCpuDone() == process.getCpuTime()) {
-                    completed++;
-                    logState( out, process, COMPLETED);
-                    if (completed == size) {
-                        result.compuTime = comptime;
-                        out.close();
-                        return result;
-                    }
-                    for (int i = size - 1; i >= 0; i--) {
-                        process = processVector.elementAt(i);
-                        if (process.getCpuDone() < process.getCpuTime()) {
-                            currentProcess = i;
-                        }
-                    }
-                    process = processVector.elementAt(currentProcess);
-                    logState( out, process, REGISTERED);
-                }
-                if (process.getIoBlocking() == process.getIoNext()) {
-                    logState( out, process, I_O_BLOCKED);
-                    process.setNumBlocked(process.getNumBlocked() + 1);
-                    process.setIoNext(0);
-                    previousProcess = currentProcess;
-                    for (int i = size - 1; i >= 0; i--) {
-                        process = processVector.elementAt(i);
-                        if (process.getCpuDone() < process.getCpuTime() && previousProcess != i) {
-                            currentProcess = i;
-                        }
-                    }
-                    process = processVector.elementAt(currentProcess);
-                    logState( out, process, REGISTERED);
-                }
-                process.setCpuDone(process.getCpuDone() + 1);
-                if (process.getIoBlocking() > 0) {
-                    process.setIoNext(process.getIoNext() + 1);
-                }
-                comptime++;
-            }
+            result.compuTime = guaranteedImplementation();
+
+            procOut.close();
             out.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        result.compuTime = comptime;
         return result;
+    }
+
+    // Returns total used CPU time
+    private int guaranteedImplementation() {
+        ProcessSimulation prev = null;
+
+        while (comptime < runtime && !processes.isEmpty()) {
+            ProcessSimulation proc = nextAvailable(comptime);
+            if (proc != null && !proc.equals(prev))
+                logState(out, proc, REGISTERED);
+            if (proc != null) {
+                proc.setCpuDone(proc.getCpuDone() + 1);
+                if (proc.getCpuDone() - proc.getLastTimeBlockedLocal() >= proc.getBlockAfter()) {
+                    proc.setLastTimeBlockedGlobal(comptime);
+                    proc.setLastTimeBlockedLocal(proc.getCpuDone());
+
+                    proc.setNumBlocked(proc.getNumBlocked() + 1);
+                    logState(out, proc, I_O_BLOCKED);
+                }
+
+                if (proc.isDone()) {
+                    completedCount++;
+                    logState(out, proc, COMPLETED);
+                    processes.remove(proc);
+                }
+            }
+
+            if (processes.isEmpty()) {
+                logFinished(out);
+                return comptime;
+            }
+            comptime++;
+            prev = proc;
+            updateRatios();
+        }
+        if (processes.isEmpty()) {
+            logFinished(out);
+        }
+        return comptime;
+    }
+
+    private void updateRatios() {
+        double eachProcessShouldReceive = (double) (comptime) / (double) (processes.size());
+        for (ProcessSimulation process : processes) {
+            process.setRatio((double) (process.getCpuDone()) / eachProcessShouldReceive);
+        }
+        processes.resort();
+    }
+
+    private ProcessSimulation nextAvailable(int currentTime) {
+        for (ProcessSimulation process : processes) {
+            if (process.isAvailable(currentTime))
+                return process;
+        }
+        return null;
+    }
+
+    private static DecimalFormat df3 = new DecimalFormat("#.###");
+
+    private static String format(String str) {
+        int len = 12;
+        StringBuilder strBuilder = new StringBuilder(str);
+        while (strBuilder.length() < len)
+            strBuilder.append(" ");
+        str = strBuilder.toString();
+        return str;
+    }
+
+    private static String format(Integer val) {
+        return format(Integer.toString(val));
     }
 
     private static void logState(PrintStream out, ProcessSimulation process, String state) {
         out.println("Process: "
-                + process.getPID() + "  "
-                + state + "  " +
-                process.getCpuTime() + " " +
-                process.getIoBlocking() + " " +
-                process.getCpuDone() + " " +
-                process.getCpuDone() + ")");
+                + format(process.getPID())
+                + format(state)
+                + format(process.getCpuTime())
+                + format(process.getBlockAfter())
+                + format(process.getCpuDone())
+                + format(df3.format(process.getRatio())));
+    }
+
+    private static void logFinished(PrintStream out) {
+        out.println("All processes finished");
     }
 }
