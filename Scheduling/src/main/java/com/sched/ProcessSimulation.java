@@ -1,11 +1,14 @@
 package com.sched;
 
-public class ProcessSimulation {
+import java.util.Objects;
+
+public class ProcessSimulation implements Comparable<ProcessSimulation> {
     private int cputime;
     private int ioblocking;
     private int cpudone;
     private int ionext;
     private int numblocked;
+    private double ratio;
 
     public ProcessSimulation(int cputime, int ioblocking, int cpudone, int ionext, int numblocked) {
         this.setCputime(cputime);
@@ -13,6 +16,8 @@ public class ProcessSimulation {
         this.setCpudone(cpudone);
         this.setIonext(ionext);
         this.setNumblocked(numblocked);
+
+        ratio = 0.0;
     }
 
     @Override
@@ -79,5 +84,24 @@ public class ProcessSimulation {
 
     public void setNumblocked(int numblocked) {
         this.numblocked = numblocked;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ProcessSimulation))
+            return false;
+        if (o.hashCode() == this.hashCode())
+            return true;
+        return this.compareTo((ProcessSimulation) (o)) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cputime, ioblocking, cpudone, ionext, numblocked, ratio);
+    }
+
+    @Override
+    public int compareTo(ProcessSimulation other) {
+        return Double.compare(ratio, other.ratio);
     }
 }

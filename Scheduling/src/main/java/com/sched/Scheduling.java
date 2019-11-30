@@ -15,33 +15,29 @@ import java.util.logging.Logger;
 
 public class Scheduling {
 
-    private static int processnum;
+    private static int processNum;
     private static int meanDev;
     private static int standardDev;
-    private static int runtime;
+    private static int runTime;
     private static Vector<ProcessSimulation> processVector = new Vector<>();
-    private static Results result = new Results("null", "null", 0);
+    private static Results result;
     private static String resultsFile = "Summary-Results";
 
     public static void main(String[] args) {
         canBeRead(args);
-        Logger.getLogger("main").log(Level.INFO, "Working...");
         init(args[0]);
-
-        if (processVector.size() < processnum) {
-            int i = 0;
-            while (processVector.size() < processnum) {
-                double X = Common.R1();
-                while (X == -1.0) {
-                    X = Common.R1();
-                }
-                X = X * standardDev;
-                int cputime = (int) X + meanDev;
-                processVector.addElement(new ProcessSimulation(cputime, i * 100, 0, 0, 0));
-                i++;
-            }
+        if (processVector.size() < processNum) {
+            addProcessesUpToProcessNum();
         }
-        result = SchedulingAlgorithm.run(runtime, processVector, result);
+        SchedulingAlgorithm algorithm = new GuaranteedSchedulingAlgorithm();
+
+        Logger.getLogger("main").log(Level.INFO, "Working...");
+        result = algorithm.run(runTime, processVector);
+        printResultsToFile();
+        Logger.getLogger("main").log(Level.INFO, "Completed");
+    }
+
+    private static void printResultsToFile() {
         try {
             PrintStream out = new PrintStream(new FileOutputStream(resultsFile));
             out.println("Scheduling Type: " + result.schedulingType);
@@ -62,7 +58,20 @@ public class Scheduling {
             }
             out.close();
         } catch (IOException e) { /* Handle exceptions */ }
-        Logger.getLogger("main").log(Level.INFO, "Completed");
+    }
+
+    private static void addProcessesUpToProcessNum() {
+        int i = 0;
+        while (processVector.size() < processNum) {
+            double X = Common.R1();
+            while (X == -1.0) {
+                X = Common.R1();
+            }
+            X = X * standardDev;
+            int cputime = (int) X + meanDev;
+            processVector.addElement(new ProcessSimulation(cputime, i * 100, 0, 0, 0));
+            i++;
+        }
     }
 
     private static void init(String fileName) {
@@ -74,12 +83,13 @@ public class Scheduling {
 
     private static void initFromFile(File f) throws IOException {
         String line;
-        DataInputStream in = new DataInputStream(new FileInputStream(f));
-        while ((line = in.readLine()) != null) {
+        FileInputStream fileStream = new FileInputStream(f);
+        Scanner in = new Scanner(fileStream);
+        while ((line = in.nextLine()) != null) {
             if (line.startsWith("numprocess")) {
                 StringTokenizer st = new StringTokenizer(line);
                 st.nextToken();
-                processnum = Common.s2i(st.nextToken());
+                processNum = Common.s2i(st.nextToken());
             }
             if (line.startsWith("meandev")) {
                 StringTokenizer st = new StringTokenizer(line);
@@ -98,7 +108,7 @@ public class Scheduling {
             if (line.startsWith("runtime")) {
                 StringTokenizer st = new StringTokenizer(line);
                 st.nextToken();
-                runtime = Common.s2i(st.nextToken());
+                runTime = Common.s2i(st.nextToken());
             }
         }
         in.close();
@@ -123,7 +133,7 @@ public class Scheduling {
     private static void debug() {
         int i = 0;
 
-        System.out.println("processnum " + processnum);
+        System.out.println("processnum " + processNum);
         System.out.println("meandevm " + meanDev);
         System.out.println("standdev " + standardDev);
         int size = processVector.size();
@@ -131,7 +141,7 @@ public class Scheduling {
             ProcessSimulation process = (ProcessSimulation) processVector.elementAt(i);
             System.out.println("process " + i + " " + process.getCputime() + " " + process.getIoblocking() + " " + process.getCpudone() + " " + process.getNumblocked());
         }
-        System.out.println("runtime " + runtime);
+        System.out.println("runtime " + runTime);
     }
 
 
