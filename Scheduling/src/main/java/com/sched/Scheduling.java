@@ -29,6 +29,7 @@ public class Scheduling {
         if (processVector.size() < processNum) {
             addProcessesUpToProcessNum();
         }
+        setPIDs();
         SchedulingAlgorithm algorithm = new GuaranteedSchedulingAlgorithm();
 
         Logger.getLogger("main").log(Level.INFO, "Working...");
@@ -37,9 +38,18 @@ public class Scheduling {
         Logger.getLogger("main").log(Level.INFO, "Completed");
     }
 
+    private static void setPIDs() {
+        for (int i = 0; i < processVector.size(); i++) {
+            processVector.get(i).setPID(i);
+        }
+    }
+
     private static void printResultsToFile() {
         try {
-            PrintStream out = new PrintStream(new FileOutputStream(resultsFile));
+            File resFile = new File("res/" + resultsFile);
+            resFile.createNewFile();
+            PrintStream out = new PrintStream(resFile);
+
             out.println("Scheduling Type: " + result.schedulingType);
             out.println("Scheduling Name: " + result.schedulingName);
             out.println("Simulation Run Time: " + result.compuTime);
@@ -84,8 +94,9 @@ public class Scheduling {
     private static void initFromFile(File f) throws IOException {
         String line;
         FileInputStream fileStream = new FileInputStream(f);
-        Scanner in = new Scanner(fileStream);
-        while ((line = in.nextLine()) != null) {
+        InputStreamReader inputStreamReader = new InputStreamReader(fileStream);
+        BufferedReader in = new BufferedReader(inputStreamReader);
+        while ((line = in.readLine()) != null) {
             if (line.startsWith("numprocess")) {
                 StringTokenizer st = new StringTokenizer(line);
                 st.nextToken();
@@ -139,7 +150,7 @@ public class Scheduling {
         int size = processVector.size();
         for (i = 0; i < size; i++) {
             ProcessSimulation process = (ProcessSimulation) processVector.elementAt(i);
-            System.out.println("process " + i + " " + process.getCputime() + " " + process.getIoblocking() + " " + process.getCpudone() + " " + process.getNumblocked());
+            System.out.println("process " + i + " " + process.getCpuTime() + " " + process.getIoBlocking() + " " + process.getCpuDone() + " " + process.getNumBlocked());
         }
         System.out.println("runtime " + runTime);
     }

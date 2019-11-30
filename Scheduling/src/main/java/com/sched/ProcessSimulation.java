@@ -3,87 +3,90 @@ package com.sched;
 import java.util.Objects;
 
 public class ProcessSimulation implements Comparable<ProcessSimulation> {
-    private int cputime;
-    private int ioblocking;
-    private int cpudone;
-    private int ionext;
-    private int numblocked;
+    private int PID;
+    private int cpuTime;
+    private int ioBlocking;
+    private int cpuDone;
+    private int ioNext;
+    private int numBlocked;
     private double ratio;
 
-    public ProcessSimulation(int cputime, int ioblocking, int cpudone, int ionext, int numblocked) {
-        this.setCputime(cputime);
-        this.setIoblocking(ioblocking);
-        this.setCpudone(cpudone);
-        this.setIonext(ionext);
-        this.setNumblocked(numblocked);
-
+    public ProcessSimulation(int cpuTime, int ioBlocking, int cpuDone, int ioNext, int numBlocked) {
+        this.setCpuTime(cpuTime);
+        this.setIoBlocking(ioBlocking);
+        this.setCpuDone(cpuDone);
+        this.setIoNext(ioNext);
+        this.setNumBlocked(numBlocked);
+        this.PID = 0;
         ratio = 0.0;
     }
+
 
     @Override
     public String toString() {
         StringBuilder res = new StringBuilder();
-        res.append(getCputime());
-        if (getCputime() < 100) {
+        res.append(getPID()).append("  ");
+        res.append(getCpuTime());
+        if (getCpuTime() < 100) {
             res.append(" (ms)\t\t");
         } else {
             res.append(" (ms)\t");
         }
-        res.append(getIoblocking());
-        if (getIoblocking() < 100) {
+        res.append(getIoBlocking());
+        if (getIoBlocking() < 100) {
             res.append(" (ms)\t\t");
         } else {
             res.append(" (ms)\t");
         }
-        res.append(getCpudone());
-        if (getCpudone() < 100) {
+        res.append(getCpuDone());
+        if (getCpuDone() < 100) {
             res.append(" (ms)\t\t");
         } else {
             res.append(" (ms)\t");
         }
-        res.append(getNumblocked()).append(" times");
+        res.append(getNumBlocked()).append(" times");
 
         return res.toString();
     }
 
-    public int getCputime() {
-        return cputime;
+    public int getCpuTime() {
+        return cpuTime;
     }
 
-    public void setCputime(int cputime) {
-        this.cputime = cputime;
+    public void setCpuTime(int cpuTime) {
+        this.cpuTime = cpuTime;
     }
 
-    public int getIoblocking() {
-        return ioblocking;
+    public int getIoBlocking() {
+        return ioBlocking;
     }
 
-    public void setIoblocking(int ioblocking) {
-        this.ioblocking = ioblocking;
+    public void setIoBlocking(int ioBlocking) {
+        this.ioBlocking = ioBlocking;
     }
 
-    public int getCpudone() {
-        return cpudone;
+    public int getCpuDone() {
+        return cpuDone;
     }
 
-    public void setCpudone(int cpudone) {
-        this.cpudone = cpudone;
+    public void setCpuDone(int cpuDone) {
+        this.cpuDone = cpuDone;
     }
 
-    public int getIonext() {
-        return ionext;
+    public int getIoNext() {
+        return ioNext;
     }
 
-    public void setIonext(int ionext) {
-        this.ionext = ionext;
+    public void setIoNext(int ioNext) {
+        this.ioNext = ioNext;
     }
 
-    public int getNumblocked() {
-        return numblocked;
+    public int getNumBlocked() {
+        return numBlocked;
     }
 
-    public void setNumblocked(int numblocked) {
-        this.numblocked = numblocked;
+    public void setNumBlocked(int numBlocked) {
+        this.numBlocked = numBlocked;
     }
 
     @Override
@@ -97,11 +100,19 @@ public class ProcessSimulation implements Comparable<ProcessSimulation> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(cputime, ioblocking, cpudone, ionext, numblocked, ratio);
+        return Objects.hash(cpuTime, ioBlocking, cpuDone, ioNext, numBlocked, ratio);
     }
 
     @Override
     public int compareTo(ProcessSimulation other) {
         return Double.compare(ratio, other.ratio);
+    }
+
+    public int getPID() {
+        return PID;
+    }
+
+    public void setPID(int PID) {
+        this.PID = PID;
     }
 }

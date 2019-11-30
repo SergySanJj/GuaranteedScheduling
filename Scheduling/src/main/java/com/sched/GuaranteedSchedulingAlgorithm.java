@@ -7,7 +7,7 @@ import java.io.*;
 
 public class GuaranteedSchedulingAlgorithm implements SchedulingAlgorithm {
 
-    public GuaranteedSchedulingAlgorithm(){
+    public GuaranteedSchedulingAlgorithm() {
     }
 
     @Override
@@ -15,7 +15,6 @@ public class GuaranteedSchedulingAlgorithm implements SchedulingAlgorithm {
         AutoSortedList<ProcessSimulation> processes = new AutoSortedList<>(processVector);
         Results result = new Results("Interactive", "Guaranteed", 0);
 
-        int i = 0;
         int comptime = 0;
         int currentProcess = 0;
         int previousProcess = 0;
@@ -24,58 +23,66 @@ public class GuaranteedSchedulingAlgorithm implements SchedulingAlgorithm {
         String resultsFile = "Summary-Processes";
 
         try {
-            PrintStream out = new PrintStream(new FileOutputStream(resultsFile));
+            File procFile = new File("res/" + resultsFile);
+            procFile.createNewFile();
+            FileOutputStream procOut = new FileOutputStream(procFile, false);
+            PrintStream out = new PrintStream(procOut);
+
             ProcessSimulation process = processVector.elementAt(currentProcess);
-            logState(currentProcess, out, process, REGISTERED);
+            logState(out, process, REGISTERED);
             while (comptime < runtime) {
-                if (process.getCpudone() == process.getCputime()) {
+                if (process.getCpuDone() == process.getCpuTime()) {
                     completed++;
-                    logState(currentProcess, out, process, COMPLETED);
+                    logState( out, process, COMPLETED);
                     if (completed == size) {
                         result.compuTime = comptime;
                         out.close();
                         return result;
                     }
-                    for (i = size - 1; i >= 0; i--) {
-                        process =  processVector.elementAt(i);
-                        if (process.getCpudone() < process.getCputime()) {
+                    for (int i = size - 1; i >= 0; i--) {
+                        process = processVector.elementAt(i);
+                        if (process.getCpuDone() < process.getCpuTime()) {
                             currentProcess = i;
                         }
                     }
-                    process =  processVector.elementAt(currentProcess);
-                    logState(currentProcess, out, process, REGISTERED);
+                    process = processVector.elementAt(currentProcess);
+                    logState( out, process, REGISTERED);
                 }
-                if (process.getIoblocking() == process.getIonext()) {
-                    logState(currentProcess, out, process, I_O_BLOCKED);
-                    process.setNumblocked(process.getNumblocked() + 1);
-                    process.setIonext(0);
+                if (process.getIoBlocking() == process.getIoNext()) {
+                    logState( out, process, I_O_BLOCKED);
+                    process.setNumBlocked(process.getNumBlocked() + 1);
+                    process.setIoNext(0);
                     previousProcess = currentProcess;
-                    for (i = size - 1; i >= 0; i--) {
-                        process =  processVector.elementAt(i);
-                        if (process.getCpudone() < process.getCputime() && previousProcess != i) {
+                    for (int i = size - 1; i >= 0; i--) {
+                        process = processVector.elementAt(i);
+                        if (process.getCpuDone() < process.getCpuTime() && previousProcess != i) {
                             currentProcess = i;
                         }
                     }
-                    process =  processVector.elementAt(currentProcess);
-                    logState(currentProcess, out, process, REGISTERED);
+                    process = processVector.elementAt(currentProcess);
+                    logState( out, process, REGISTERED);
                 }
-                process.setCpudone(process.getCpudone() + 1);
-                if (process.getIoblocking() > 0) {
-                    process.setIonext(process.getIonext() + 1);
+                process.setCpuDone(process.getCpuDone() + 1);
+                if (process.getIoBlocking() > 0) {
+                    process.setIoNext(process.getIoNext() + 1);
                 }
                 comptime++;
             }
             out.close();
-        } catch (IOException e) { /* Handle exceptions */ }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         result.compuTime = comptime;
         return result;
     }
 
-    private static void logState(int currentProcess, PrintStream out, ProcessSimulation process, String state) {
-        out.println("Process: " + currentProcess + state +
-                process.getCputime() + " " +
-                process.getIoblocking() + " " +
-                process.getCpudone() + " " +
-                process.getCpudone() + ")");
+    private static void logState(PrintStream out, ProcessSimulation process, String state) {
+        out.println("Process: "
+                + process.getPID() + "  "
+                + state + "  " +
+                process.getCpuTime() + " " +
+                process.getIoBlocking() + " " +
+                process.getCpuDone() + " " +
+                process.getCpuDone() + ")");
     }
 }
