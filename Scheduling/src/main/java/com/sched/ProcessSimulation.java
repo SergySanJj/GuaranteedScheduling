@@ -1,13 +1,13 @@
 package com.sched;
 
-public class sProcess {
+public class ProcessSimulation {
     private int cputime;
     private int ioblocking;
     private int cpudone;
     private int ionext;
     private int numblocked;
 
-    public sProcess(int cputime, int ioblocking, int cpudone, int ionext, int numblocked) {
+    public ProcessSimulation(int cputime, int ioblocking, int cpudone, int ionext, int numblocked) {
         this.setCputime(cputime);
         this.setIoblocking(ioblocking);
         this.setCpudone(cpudone);
