@@ -1,2 +1,3 @@
-# FairShare
-Fair-share scheduling
+# Guaranteed scheduling
+Guaranteed scheduling
+
